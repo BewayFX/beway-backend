@@ -10,7 +10,10 @@ const app = express();
 
 app.use(cors());
 
-// Stripe webhook needs the raw body, so it's mounted BEFORE express.json()
+// Stripe webhook needs the raw, unparsed request body to verify its
+// signature — this MUST be applied before express.json() and scoped
+// only to this path, or signature verification will always fail.
+app.use('/api/webhook', express.raw({ type: 'application/json' }));
 app.use('/api', webhookRoutes);
 
 app.use(express.json());
