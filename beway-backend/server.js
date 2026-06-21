@@ -5,6 +5,7 @@ const cors = require('cors');
 const webhookRoutes = require('./routes/webhook');
 const checkoutRoutes = require('./routes/checkout');
 const adminRoutes = require('./routes/admin');
+const licenseCheckRoutes = require('./routes/license-check');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use('/api', webhookRoutes);
 
 app.use(express.json());
 app.use('/api', checkoutRoutes);
+app.use('/api', licenseCheckRoutes);
 app.use('/api/admin', adminRoutes);
 
 app.get('/health', (req, res) => res.json({ ok: true }));
