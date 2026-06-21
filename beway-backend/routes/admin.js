@@ -1,4 +1,5 @@
 const express = require('express');
+const crypto = require('crypto');
 const db = require('../db');
 const requireAdmin = require('../lib/requireAdmin');
 const { buildLicenseFile, deriveLicenseStatus } = require('../lib/license');
@@ -50,6 +51,21 @@ router.get('/members/:id/license', (req, res) => {
   res.setHeader('Content-Type', 'text/plain');
   res.setHeader('Content-Disposition', 'attachment; filename="License.key"');
   res.send(fileText);
+});
+
+// POST /api/admin/members/:id/rotate-token
+// Generates a brand new access token for this member, instantly invalidating
+// their old one — use this if a client's token ever leaks or gets shared.
+router.post('/members/:id/rotate-token', (req, res) => {
+  const newToken = crypto.randomBytes(16).toString('hex');
+  const result = db
+    .prepare("UPDATE members SET access_token = ?, updated_at = datetime('now') WHERE id = ?")
+    .run(newToken, req.params.id);
+
+  if (result.changes === 0) return res.status(404).json({ error: 'Member not found' });
+
+  const member = db.prepare('SELECT * FROM members WHERE id = ?').get(req.params.id);
+  res.json({ member });
 });
 
 // DELETE /api/admin/members/:id — remove a member record entirely
