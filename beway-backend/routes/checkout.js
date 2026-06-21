@@ -1,5 +1,6 @@
 const express = require('express');
 const Stripe = require('stripe');
+const crypto = require('crypto');
 const db = require('../db');
 
 const router = express.Router();
@@ -26,9 +27,9 @@ router.post('/checkout', async (req, res) => {
 
     if (!member) {
       db.prepare(
-        `INSERT INTO members (name, email, stripe_customer_id, billing_status, manual_override)
-         VALUES (?, ?, ?, 'pending', 'on')`
-      ).run(name, email, customerId);
+        `INSERT INTO members (name, email, access_token, stripe_customer_id, billing_status, manual_override)
+         VALUES (?, ?, ?, ?, 'pending', 'on')`
+      ).run(name, email, crypto.randomBytes(16).toString('hex'), customerId);
     }
 
     const session = await stripe.checkout.sessions.create({
